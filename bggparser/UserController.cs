@@ -53,7 +53,7 @@ namespace bggparser
         }
         protected void OnShowed(UserEventArgs e)
         {
-            CallEvent(e, Added);
+            CallEvent(e, Showed);
         }
 
         public string CollectionPathConstructor()
@@ -121,10 +121,9 @@ namespace bggparser
             xmldoc.Load(HistoryFilePathConstructor());
             XmlElement xRoot = xmldoc.DocumentElement;
             XmlNodeList childnodesPlay = xRoot.SelectNodes("play");
-            XmlNodeList childnodesItem = xRoot.SelectNodes("//play/item");
             foreach (XmlNode playEx in childnodesPlay)
             {
-                foreach (XmlNode itemEx in childnodesItem)
+                foreach (XmlNode itemEx in playEx.SelectNodes("*"))
                 {
                     string name = itemEx.SelectSingleNode("@name").Value;
                     gameDataCollection.Add(new GameData
@@ -145,13 +144,26 @@ namespace bggparser
             OnShowed(new UserEventArgs($"Добавлена 1 партия в игру {name}, Дата {DateTime.Now}."));
         }
 
+        public void ShowCurrentGameHistory(string name)
+        {
+            OnShowed(new UserEventArgs($"История партий в игру {name}:"));
+            foreach (var game in gameDataCollection)
+            {
+                if (game.Name == name)
+                {
+                    Console.WriteLine($"\t{game.Date}");
+                }
+            }
+        }
+
         public void ShowPlayedGames()
         {
             OnShowed(new UserEventArgs($"История партий игрока {UserName}: "));
+            gameDataCollection.Sort((x, y) => y.Date.CompareTo(x.Date));
             Console.WriteLine();
             foreach (var game in gameDataCollection)
             {
-                Console.WriteLine($"{game.Name} - {game.Date} - {game.Count}");
+                Console.WriteLine($"{game.Name} - {game.Date} - {game.Count} plays");
             }
         }
 
@@ -165,9 +177,8 @@ namespace bggparser
             }
         }
 
-        public void GetPlayStory() 
+        public void GetPlayHistory() 
         {
-
             OnShowed(new UserEventArgs($"История игрока {UserName} с сайта bgg загружена успешно."));
         }
     }

@@ -18,7 +18,7 @@ namespace bggparser
 
         static void Main(string[] args)
         {
-            Console.WriteLine("Введите никнейм пользователя сайта boardgamgeek.");
+            Console.WriteLine("Введите никнейм пользователя сайта boardgamgeek.com.");
             string userName = Console.ReadLine();
             string collectionPath = userName + ".xml";
             string dataPath = userName + "_data" + ".xml";
@@ -42,19 +42,20 @@ namespace bggparser
             else
             {
                 newUser.GetUserCollection();
-                newUser.GetUserHistory();
                 fileCollectionService.SaveCollection(newUser.gameCollection);
+                newUser.GetUserHistory();
+                fileDataService.SaveDataCollection(newUser.gameDataCollection);
             }
             bool alive = true;
             while (alive)
             {
                 Console.WriteLine("Выбери действие:");
                 Console.WriteLine();
-                Console.WriteLine("1. Добавить партию.   2. Показать историю игр.   3. Выход.");
+                Console.WriteLine("1. Добавить партию.   2. Показать историю партий всех игр.   3. Показать историю партий одной игры.   4. Выход.");
                 int decision;
                 while (true)
                 {
-                    if (Int32.TryParse(Console.ReadLine(), out decision) & decision > 0 & decision < 4)
+                    if (Int32.TryParse(Console.ReadLine(), out decision) & decision > 0 & decision < 5)
                     {
                         break;
                     }
@@ -95,6 +96,27 @@ namespace bggparser
                             break;
                         }
                     case 3:
+                        {
+                            newUser.ShowCollection();
+                            Console.WriteLine("Выбери игру, историю которой показать. Введи номер.");
+                            int decision2;
+                            while (true)
+                            {
+                                if (Int32.TryParse(Console.ReadLine(), out decision2) & decision2 > 0 & decision2 <= newUser.gameCollection.Count)
+                                {
+                                    break;
+                                }
+                                else
+                                {
+                                    Console.ForegroundColor = ConsoleColor.Red;
+                                    Console.WriteLine("Неверная команда.");
+                                    Console.ForegroundColor = ConsoleColor.White;
+                                }
+                            }
+                            newUser.ShowCurrentGameHistory(newUser.gameCollection[decision2 - 1].Name);
+                            break;
+                        }
+                    case 4:
                         {
                             alive = false;
                             break;
