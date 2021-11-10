@@ -41,7 +41,8 @@ namespace bggparser
             }
             else
             {
-                newUser.ApiReader();
+                newUser.GetUserCollection();
+                newUser.GetUserHistory();
                 fileCollectionService.SaveCollection(newUser.gameCollection);
             }
             bool alive = true;

@@ -9,12 +9,14 @@ namespace bggparser
     [Serializable]
     public class GameData
     {
-        public string Name { get; set; }
-        public DateTime Date { get; set; }
-
         public GameData()
         {
 
         }
+        public string Name { get; set; }
+        public DateTime Date { get; set; }
+        public int Count { get; set; }
+
+
     }
 }

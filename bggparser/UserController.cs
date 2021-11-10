@@ -3,6 +3,7 @@ using System.Net;
 using System.Xml.Linq;
 using System.Linq;
 using System.Collections.Generic;
+using System.Xml;
 
 namespace bggparser
 {
@@ -22,8 +23,13 @@ namespace bggparser
         public List<GameData> gameDataCollection = new List<GameData>();
         public List<Game> gameCollection = new List<Game>();
 
-        const string BEGINURL = "https://www.boardgamegeek.com/xmlapi/collection/";
-        const string ENDURL = "?own=1.xml";
+        const string BEGINURL_COLLECTION = "https://www.boardgamegeek.com/xmlapi/collection/";
+        const string ENDURL_COLLECTION = "?own=1.xml";
+
+        const string BEGINURL_HISTORY = "https://boardgamegeek.com/xmlapi2/plays?username=";
+        const string ENDURL_HISTORY = "&type=thing.xml";
+
+
 
         internal event UserStateHandler ApiRead;
         internal event UserStateHandler Added;
@@ -50,22 +56,39 @@ namespace bggparser
             CallEvent(e, Added);
         }
 
-        public string AddressConstructor()
+        public string CollectionPathConstructor()
         {
-            string address;
-            address = BEGINURL + UserName + ENDURL;
-            return address;
+            string path = BEGINURL_COLLECTION + UserName + ENDURL_COLLECTION;
+            return path;
+        }
+        public string HistoryPathConstructor()
+        {
+            string path = BEGINURL_HISTORY + UserName + ENDURL_HISTORY;
+            return path;
         }
 
-        public void ApiReader()
+        public string CollectionFilePathConstructor() 
+        {
+            string path = UserName + "_Collection.xml";
+            return path;
+        }
+        public string HistoryFilePathConstructor()
+        {
+            string path = UserName + "_History.xml";
+            return path;
+        }
+
+
+
+        public void GetUserCollection()
         {
             WebClient client = new WebClient();
             using (client)
             {
-                client.DownloadFile(AddressConstructor(), "apiuser.xml");
+                client.DownloadFile(CollectionPathConstructor(), CollectionFilePathConstructor());
             }
 
-            XDocument xmldoc = XDocument.Load("apiuser.xml");
+            XDocument xmldoc = XDocument.Load(CollectionFilePathConstructor());
             try
             {
                 var games = from ex in xmldoc.Element("items").Elements("item")
@@ -82,16 +105,44 @@ namespace bggparser
             {
                 Console.WriteLine($"Возникло исключение: {ex.Message}");
                 Console.ReadLine();
-                System.Environment.Exit(0);
+                Environment.Exit(0);
             }
-            OnAdded(new UserEventArgs($"С сайта boardgamegeek.com закружена коллекция игрока {UserName}."));
+            OnAdded(new UserEventArgs($"С сайта boardgamegeek.com закружена коллекция игрока {UserName} в файл {CollectionFilePathConstructor()}."));
+        }
+
+        public void GetUserHistory() 
+        {
+            WebClient client = new WebClient();
+            using (client)
+            {
+                client.DownloadFile(HistoryPathConstructor(), HistoryFilePathConstructor());
+            }
+            XmlDocument xmldoc = new XmlDocument();
+            xmldoc.Load(HistoryFilePathConstructor());
+            XmlElement xRoot = xmldoc.DocumentElement;
+            XmlNodeList childnodesPlay = xRoot.SelectNodes("play");
+            XmlNodeList childnodesItem = xRoot.SelectNodes("//play/item");
+            foreach (XmlNode playEx in childnodesPlay)
+            {
+                foreach (XmlNode itemEx in childnodesItem)
+                {
+                    string name = itemEx.SelectSingleNode("@name").Value;
+                    gameDataCollection.Add(new GameData
+                    {
+                        Date = Convert.ToDateTime(playEx.SelectSingleNode("@date").Value),
+                        Count = Convert.ToInt32(playEx.SelectSingleNode("@quantity").Value),
+                        Name = name
+                    });
+                }
+            }
+            OnAdded(new UserEventArgs($"С сайта boardgamegeek.com закружена история игрока {UserName} в файл {HistoryFilePathConstructor()}."));
         }
 
         public void AddPlayedGame(string name)
         {
-            gameDataCollection.Add(new GameData { Name = name, Date = DateTime.Now });
+            gameDataCollection.Add(new GameData { Name = name, Date = DateTime.Now, Count = 1});
             Console.WriteLine();
-            OnShowed(new UserEventArgs($"Добавлена партия в игру {name}, Дата {DateTime.Now}."));
+            OnShowed(new UserEventArgs($"Добавлена 1 партия в игру {name}, Дата {DateTime.Now}."));
         }
 
         public void ShowPlayedGames()
@@ -100,7 +151,7 @@ namespace bggparser
             Console.WriteLine();
             foreach (var game in gameDataCollection)
             {
-                Console.WriteLine($"{game.Name} - {game.Date}");
+                Console.WriteLine($"{game.Name} - {game.Date} - {game.Count}");
             }
         }
 
@@ -112,6 +163,12 @@ namespace bggparser
             {
                 Console.WriteLine((gameCollection.IndexOf(game)+1) + ". " + game.Name);
             }
+        }
+
+        public void GetPlayStory() 
+        {
+
+            OnShowed(new UserEventArgs($"История игрока {UserName} с сайта bgg загружена успешно."));
         }
     }
 }
