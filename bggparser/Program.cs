@@ -25,7 +25,6 @@ namespace bggparser
             
             UserController newUser = new UserController(userName);
             newUser.ApiRead += NewUser_ApiRead;
-            newUser.Showed += NewUser_Showed;
             newUser.Added += NewUser_Added;
             
             FileService fileCollectionService = new FileService(collectionPath);
@@ -129,12 +128,6 @@ namespace bggparser
         {
             Console.WriteLine(e.Message);
         }
-
-        private static void NewUser_Showed(object sender, UserEventArgs e)
-        {
-            Console.WriteLine(e.Message);
-        }
-
         private static void NewUser_ApiRead(object sender, UserEventArgs e)
         {
             Console.WriteLine(e.Message);

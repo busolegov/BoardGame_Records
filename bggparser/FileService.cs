@@ -25,10 +25,10 @@ namespace bggparser
         {
             XmlSerializer formatter = new XmlSerializer(typeof(List<Game>));
             using (FileStream stream = new FileStream(PATH, FileMode.OpenOrCreate))
-               {
+            {
                 u.gameCollection = (List<Game>)formatter.Deserialize(stream);
                 return u.gameCollection;
-               }
+            }
         }
 
         public List<GameData> LoadDataCollection(UserController u)
@@ -45,9 +45,9 @@ namespace bggparser
         {
              XmlSerializer formatter = new XmlSerializer(typeof(List<Game>));
              using (FileStream stream = new FileStream(PATH, FileMode.OpenOrCreate))
-                {
-                    formatter.Serialize(stream, o);
-                }
+             {
+                 formatter.Serialize(stream, o);
+             }
         }
 
         public void SaveDataCollection(List<GameData> o)

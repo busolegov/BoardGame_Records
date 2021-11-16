@@ -29,11 +29,8 @@ namespace bggparser
         const string BEGINURL_HISTORY = "https://boardgamegeek.com/xmlapi2/plays?username=";
         const string ENDURL_HISTORY = "&type=thing.xml";
 
-
-
         internal event UserStateHandler ApiRead;
         internal event UserStateHandler Added;
-        internal event UserStateHandler Showed;
 
         private void CallEvent(UserEventArgs e, UserStateHandler handler)
         {
@@ -50,10 +47,6 @@ namespace bggparser
         protected void OnAdded(UserEventArgs e) 
         {
             CallEvent(e, Added);
-        }
-        protected void OnShowed(UserEventArgs e)
-        {
-            CallEvent(e, Showed);
         }
 
         public string CollectionPathConstructor()
@@ -77,8 +70,6 @@ namespace bggparser
             string path = UserName + "_History.xml";
             return path;
         }
-
-
 
         public void GetUserCollection()
         {
@@ -141,12 +132,12 @@ namespace bggparser
         {
             gameDataCollection.Add(new GameData { Name = name, Date = DateTime.Now, Count = 1});
             Console.WriteLine();
-            OnShowed(new UserEventArgs($"Добавлена 1 партия в игру {name}, Дата {DateTime.Now}."));
+            Console.WriteLine($"Добавлена 1 партия в игру {name}, Дата {DateTime.Now}.");
         }
 
         public void ShowCurrentGameHistory(string name)
         {
-            OnShowed(new UserEventArgs($"История партий в игру {name}:"));
+            Console.WriteLine($"История партий в игру {name}:");
             foreach (var game in gameDataCollection)
             {
                 if (game.Name == name)
@@ -158,7 +149,7 @@ namespace bggparser
 
         public void ShowPlayedGames()
         {
-            OnShowed(new UserEventArgs($"История партий игрока {UserName}: "));
+            Console.WriteLine($"История партий игрока {UserName}: ");
             gameDataCollection.Sort((x, y) => y.Date.CompareTo(x.Date));
             Console.WriteLine();
             foreach (var game in gameDataCollection)
@@ -169,7 +160,7 @@ namespace bggparser
 
         public void ShowCollection() 
         {
-            OnShowed(new UserEventArgs($"Коллекция игрока {UserName}: "));
+            Console.WriteLine($"Коллекция игрока {UserName}: ");
             Console.WriteLine();
             foreach (var game in gameCollection)
             {
@@ -179,7 +170,7 @@ namespace bggparser
 
         public void GetPlayHistory() 
         {
-            OnShowed(new UserEventArgs($"История игрока {UserName} с сайта bgg загружена успешно."));
+            Console.WriteLine($"История игрока {UserName} с сайта bgg загружена успешно.");
         }
     }
 }
