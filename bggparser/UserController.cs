@@ -132,7 +132,7 @@ namespace bggparser
         {
             gameDataCollection.Add(new GameData { Name = name, Date = DateTime.Now, Count = 1});
             Console.WriteLine();
-            Console.WriteLine($"Добавлена 1 партия в игру {name}, Дата {DateTime.Now}.");
+            Console.WriteLine($"Добавлена 1 партия в игру {name}, Дата {DateTime.Now.ToShortDateString()}.");
         }
 
         public void ShowCurrentGameHistory(string name)
@@ -142,19 +142,19 @@ namespace bggparser
             {
                 if (game.Name == name)
                 {
-                    Console.WriteLine($"\t{game.Date}");
+                    Console.WriteLine($"\t{game.Date.ToShortDateString()}");
                 }
             }
         }
 
         public void ShowPlayedGames()
         {
-            Console.WriteLine($"История партий игрока {UserName}: ");
+            Console.WriteLine($"Количество партий в игры из коллекции игрока {UserName}: ");
             gameDataCollection.Sort((x, y) => y.Date.CompareTo(x.Date));
             Console.WriteLine();
             foreach (var game in gameDataCollection)
             {
-                Console.WriteLine($"{game.Name} - {game.Date} - {game.Count} plays");
+                Console.WriteLine($"{game.Name} - {game.Count} партий");
             }
         }
 
