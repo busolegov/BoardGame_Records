@@ -6,16 +6,13 @@ using System.Threading.Tasks;
 
 namespace bggparser
 {
-    public class GameData : Game
+    class DbGameDate
     {
-        public GameData()
-        {
-
-        }
-        //public string Name { get; set; }
         public DateTime Date { get; set; }
-        public int Count { get; set; }
+        public int Id { get; set; }
+        public int DbGameId { get; set; }
 
-
+        //навигационное свойство
+        public DbGame DbGame { get; set; }
     }
 }

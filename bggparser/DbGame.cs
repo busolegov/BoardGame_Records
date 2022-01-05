@@ -6,12 +6,13 @@ using System.Threading.Tasks;
 
 namespace bggparser
 {
-    public class Game
+    class DbGame
     {
         public string Name { get; set; }
-        public Game()
-        {
+        public int Id { get; set; }
 
-        }
+        public virtual ICollection<DbGameDate> DbGamesDates { get; set; }
+
+
     }
 }

@@ -20,8 +20,8 @@ namespace bggparser
         {
             Console.WriteLine("Введите никнейм пользователя сайта boardgamgeek.com.");
             string userName = Console.ReadLine();
-            string collectionPath = userName + ".xml";
-            string dataPath = userName + "_data" + ".xml";
+            string collectionPath = userName + "_local_collection" + ".xml";
+            string dataPath = userName + "_local_data" + ".xml";
             
             UserController newUser = new UserController(userName);
             newUser.ApiRead += NewUser_ApiRead;
@@ -30,21 +30,51 @@ namespace bggparser
             FileService fileCollectionService = new FileService(collectionPath);
             FileService fileDataService = new FileService(dataPath);
 
-            if (File.Exists(collectionPath))
+            newUser.GetUserCollection();
+            fileCollectionService.SaveCollection(newUser.gameCollection);
+            fileCollectionService.LoadCollection(newUser);
+            newUser.GetUserHistory();
+            fileDataService.SaveDataCollection(newUser.gameDataCollection);
+            fileDataService.LoadDataCollection(newUser);
+
+            #region DbProcess
+
+
+            using (var contex = new BoardGameContex())
             {
-                fileCollectionService.LoadCollection(newUser);
-                if (File.Exists(dataPath))
+                foreach (var game in newUser.gameCollection)
                 {
-                    fileDataService.LoadDataCollection(newUser);
+                    contex.DbGames.Add(new DbGame() { Name = game.Name });
                 }
+                contex.SaveChanges();
+                foreach (var game in newUser.gameDataCollection)
+                {
+                    foreach (var item in contex.DbGames)
+                    {
+                        if (item.Name == game.Name)
+                        {
+                            contex.DbGamesDates.Add(new DbGameDate() { Date = game.Date, DbGameId = item.Id});
+                        }
+                    }
+                }
+                contex.SaveChanges();
+                Console.WriteLine("Объекты сохранены в БД.");
             }
-            else
-            {
-                newUser.GetUserCollection();
-                fileCollectionService.SaveCollection(newUser.gameCollection);
-                newUser.GetUserHistory();
-                fileDataService.SaveDataCollection(newUser.gameDataCollection);
-            }
+            #endregion
+
+            //if (File.Exists(collectionPath))
+            //{
+            //    fileCollectionService.LoadCollection(newUser);
+            //    if (File.Exists(dataPath))
+            //    {
+            //        fileDataService.LoadDataCollection(newUser);
+            //    }
+            //}
+            //else
+            //{
+            //    newUser.GetUserHistory();
+            //    fileDataService.SaveDataCollection(newUser.gameDataCollection);
+            //}
             bool alive = true;
             while (alive)
             {

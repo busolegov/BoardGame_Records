@@ -7,7 +7,6 @@ using System.Xml;
 
 namespace bggparser
 {
-    [Serializable]
     public class UserController
     {
         public string UserName { get; set; }
@@ -21,7 +20,9 @@ namespace bggparser
         }
 
         public List<GameData> gameDataCollection = new List<GameData>();
+        public List<GameData> tempGameDataCollection = new List<GameData>();
         public List<Game> gameCollection = new List<Game>();
+        public List<Game> tempGameCollection = new List<Game>();
 
         const string BEGINURL_COLLECTION = "https://www.boardgamegeek.com/xmlapi/collection/";
         const string ENDURL_COLLECTION = "?own=1.xml";
@@ -73,8 +74,7 @@ namespace bggparser
 
         public void GetUserCollection()
         {
-            WebClient client = new WebClient();
-            using (client)
+            using (WebClient client = new WebClient())
             {
                 client.DownloadFile(CollectionPathConstructor(), CollectionFilePathConstructor());
             }
@@ -92,7 +92,7 @@ namespace bggparser
                     gameCollection.Add(game);
                 }
             }
-            catch (NullReferenceException ex)
+            catch (Exception ex)
             {
                 Console.WriteLine($"Возникло исключение: {ex.Message}");
                 Console.ReadLine();
@@ -103,8 +103,7 @@ namespace bggparser
 
         public void GetUserHistory() 
         {
-            WebClient client = new WebClient();
-            using (client)
+            using (WebClient client = new WebClient())
             {
                 client.DownloadFile(HistoryPathConstructor(), HistoryFilePathConstructor());
             }
@@ -117,12 +116,17 @@ namespace bggparser
                 foreach (XmlNode itemEx in playEx.SelectNodes("*"))
                 {
                     string name = itemEx.SelectSingleNode("@name").Value;
+                    DateTime date = Convert.ToDateTime(playEx.SelectSingleNode("@date").Value);
+                    int count = Convert.ToInt32(playEx.SelectSingleNode("@quantity").Value);
+
                     gameDataCollection.Add(new GameData
                     {
-                        Date = Convert.ToDateTime(playEx.SelectSingleNode("@date").Value),
-                        Count = Convert.ToInt32(playEx.SelectSingleNode("@quantity").Value),
+                        Date = date,
+                        Count = count,
                         Name = name
                     });
+
+
                 }
             }
             OnAdded(new UserEventArgs($"С сайта boardgamegeek.com закружена история игрока {UserName} в файл {HistoryFilePathConstructor()}."));
@@ -171,6 +175,47 @@ namespace bggparser
         public void GetPlayHistory() 
         {
             Console.WriteLine($"История игрока {UserName} с сайта bgg загружена успешно.");
+        }
+
+        public void GetNewCollection()
+        {
+            foreach (var game in tempGameCollection)
+            {
+                foreach (var item in gameCollection)
+                {
+                    if (game.Name == item.Name)
+                    {
+                        break;
+                    }
+                    else
+                    {
+                        gameCollection.Add(game);
+                    }
+                }
+            }
+        }
+
+        public void GetNewLoggedGames()
+        {
+            foreach (var gameData in tempGameDataCollection)
+            {
+                foreach (var item in gameDataCollection)
+                {
+                    if (gameData.Name == item.Name & gameData.Date == item.Date)
+                    {
+                        break;
+                    }
+                    else
+                    {
+                        gameDataCollection.Add(new GameData
+                        {
+                            Date = gameData.Date,
+                            Count = gameData.Count,
+                            Name = gameData.Name
+                        });
+                    }
+                }
+            }
         }
     }
 }
