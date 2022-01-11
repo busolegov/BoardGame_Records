@@ -15,13 +15,19 @@ namespace bggparser
 {
     class Program
     {
+        public static void ShowMistakeCmd() 
+        {
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine("Неверная команда.");
+            Console.ForegroundColor = ConsoleColor.White;
+        }
 
         static void Main(string[] args)
         {
             Console.WriteLine("Введите никнейм пользователя сайта boardgamgeek.com.");
             string userName = Console.ReadLine();
-            string collectionPath = userName + "_local_collection" + ".xml";
-            string dataPath = userName + "_local_data" + ".xml";
+            string collectionPath = userName + "_local_collection.xml";
+            string dataPath = userName + "_local_data.xml";
             
             UserController newUser = new UserController(userName);
             newUser.ApiRead += NewUser_ApiRead;
@@ -32,28 +38,48 @@ namespace bggparser
 
             newUser.GetUserCollection();
             fileCollectionService.SaveCollection(newUser.gameCollection);
-            fileCollectionService.LoadCollection(newUser);
             newUser.GetUserHistory();
-            fileDataService.SaveDataCollection(newUser.gameDataCollection);
-            fileDataService.LoadDataCollection(newUser);
+
+            if (File.Exists(dataPath))
+            {
+                fileDataService.LoadData(newUser);
+                foreach (var game in newUser.gameData)
+                {
+                    for (int i = 0; i < newUser.tempGameData.Count; i++)
+                    {
+                        if (game.Name == newUser.tempGameData[i].Name)
+                        {
+                            if (game.Date == newUser.tempGameData[i].Date)
+                            {
+                                newUser.tempGameData.RemoveAt(i);
+                            }
+                        }
+                    }
+                }
+                newUser.gameData.AddRange(newUser.tempGameData);
+            }
+            else
+            {
+                newUser.gameData = newUser.tempGameData;
+            }
+            fileDataService.SaveData(newUser.gameData);
 
             #region DbProcess
-
 
             using (var contex = new BoardGameContex())
             {
                 foreach (var game in newUser.gameCollection)
                 {
-                    contex.DbGames.Add(new DbGame() { Name = game.Name });
+                    contex.DbGames.Add(new DbGame() { Name = game.Name, UserName = userName });
                 }
                 contex.SaveChanges();
-                foreach (var game in newUser.gameDataCollection)
+                foreach (var game in newUser.gameData)
                 {
                     foreach (var item in contex.DbGames)
                     {
                         if (item.Name == game.Name)
                         {
-                            contex.DbGamesDates.Add(new DbGameDate() { Date = game.Date, DbGameId = item.Id});
+                            contex.DbGamesDates.Add(new DbGameDate() { Date = game.Date, DbGameId = item.Id });
                         }
                     }
                 }
@@ -62,19 +88,7 @@ namespace bggparser
             }
             #endregion
 
-            //if (File.Exists(collectionPath))
-            //{
-            //    fileCollectionService.LoadCollection(newUser);
-            //    if (File.Exists(dataPath))
-            //    {
-            //        fileDataService.LoadDataCollection(newUser);
-            //    }
-            //}
-            //else
-            //{
-            //    newUser.GetUserHistory();
-            //    fileDataService.SaveDataCollection(newUser.gameDataCollection);
-            //}
+
             bool alive = true;
             while (alive)
             {
@@ -90,9 +104,7 @@ namespace bggparser
                     }
                     else
                     {
-                        Console.ForegroundColor = ConsoleColor.Red;
-                        Console.WriteLine("Неверная команда.");
-                        Console.ForegroundColor = ConsoleColor.White;
+                        ShowMistakeCmd();
                     }
                 }
                 switch (decision)
@@ -110,13 +122,11 @@ namespace bggparser
                                 }
                                 else
                                 {
-                                    Console.ForegroundColor = ConsoleColor.Red;
-                                    Console.WriteLine("Неверная команда.");
-                                    Console.ForegroundColor = ConsoleColor.White;
+                                    ShowMistakeCmd();
                                 }
                             }
                             newUser.AddPlayedGame(newUser.gameCollection[decision1-1].Name);
-                            fileDataService.SaveDataCollection(newUser.gameDataCollection);
+                            fileDataService.SaveData(newUser.gameData);
                             break;
                         }
                     case 2:
@@ -137,9 +147,7 @@ namespace bggparser
                                 }
                                 else
                                 {
-                                    Console.ForegroundColor = ConsoleColor.Red;
-                                    Console.WriteLine("Неверная команда.");
-                                    Console.ForegroundColor = ConsoleColor.White;
+                                    ShowMistakeCmd();
                                 }
                             }
                             newUser.ShowCurrentGameHistory(newUser.gameCollection[decision2 - 1].Name);

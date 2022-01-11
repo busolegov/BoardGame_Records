@@ -16,11 +16,6 @@ namespace bggparser
 
         public DbSet<DbGame> DbGames { get; set; }
         public DbSet<DbGameDate> DbGamesDates { get; set; }
-
-        //protected override void OnModelCreating(DbModelBuilder modelBuilder)
-        //{
-        //    modelBuilder.Entity<DbGame>().HasIndex(i => i.Name).IsUnique();
-        //}
     }
 
 

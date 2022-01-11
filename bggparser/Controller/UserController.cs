@@ -19,10 +19,9 @@ namespace bggparser
             UserName = name;
         }
 
-        public List<GameData> gameDataCollection = new List<GameData>();
-        public List<GameData> tempGameDataCollection = new List<GameData>();
+        public List<GameData> gameData = new List<GameData>();
+        public List<GameData> tempGameData = new List<GameData>();
         public List<Game> gameCollection = new List<Game>();
-        public List<Game> tempGameCollection = new List<Game>();
 
         const string BEGINURL_COLLECTION = "https://www.boardgamegeek.com/xmlapi/collection/";
         const string ENDURL_COLLECTION = "?own=1.xml";
@@ -119,7 +118,7 @@ namespace bggparser
                     DateTime date = Convert.ToDateTime(playEx.SelectSingleNode("@date").Value);
                     int count = Convert.ToInt32(playEx.SelectSingleNode("@quantity").Value);
 
-                    gameDataCollection.Add(new GameData
+                    tempGameData.Add(new GameData
                     {
                         Date = date,
                         Count = count,
@@ -134,7 +133,7 @@ namespace bggparser
 
         public void AddPlayedGame(string name)
         {
-            gameDataCollection.Add(new GameData { Name = name, Date = DateTime.Now, Count = 1});
+            gameData.Add(new GameData { Name = name, Date = DateTime.Now, Count = 1});
             Console.WriteLine();
             Console.WriteLine($"Добавлена 1 партия в игру {name}, Дата {DateTime.Now.ToShortDateString()}.");
         }
@@ -142,7 +141,7 @@ namespace bggparser
         public void ShowCurrentGameHistory(string name)
         {
             Console.WriteLine($"История партий в игру {name}:");
-            foreach (var game in gameDataCollection)
+            foreach (var game in gameData)
             {
                 if (game.Name == name)
                 {
@@ -154,9 +153,9 @@ namespace bggparser
         public void ShowPlayedGames()
         {
             Console.WriteLine($"Количество партий в игры из коллекции игрока {UserName}: ");
-            gameDataCollection.Sort((x, y) => y.Date.CompareTo(x.Date));
+            gameData.Sort((x, y) => y.Date.CompareTo(x.Date));
             Console.WriteLine();
-            foreach (var game in gameDataCollection)
+            foreach (var game in gameData)
             {
                 Console.WriteLine($"{game.Name} - {game.Count} партий");
             }
@@ -179,7 +178,7 @@ namespace bggparser
 
         public void GetNewCollection()
         {
-            foreach (var game in tempGameCollection)
+            foreach (var game in gameCollection)
             {
                 foreach (var item in gameCollection)
                 {
@@ -197,9 +196,9 @@ namespace bggparser
 
         public void GetNewLoggedGames()
         {
-            foreach (var gameData in tempGameDataCollection)
+            foreach (var gameData in gameData)
             {
-                foreach (var item in gameDataCollection)
+                foreach (var item in this.gameData)
                 {
                     if (gameData.Name == item.Name & gameData.Date == item.Date)
                     {
@@ -207,7 +206,7 @@ namespace bggparser
                     }
                     else
                     {
-                        gameDataCollection.Add(new GameData
+                        this.gameData.Add(new GameData
                         {
                             Date = gameData.Date,
                             Count = gameData.Count,

@@ -31,29 +31,29 @@ namespace bggparser
             }
         }
 
-        public List<GameData> LoadDataCollection(UserController u)
+        public List<GameData> LoadData(UserController u)
         {
             XmlSerializer formatter = new XmlSerializer(typeof(List<GameData>));
             using (FileStream stream = new FileStream(PATH, FileMode.OpenOrCreate))
             {
-                u.gameDataCollection = (List<GameData>)formatter.Deserialize(stream);
-                return u.gameDataCollection;
+                u.gameData = (List<GameData>)formatter.Deserialize(stream);
+                return u.gameData;
             }
         }
 
         public void SaveCollection(List<Game> o) 
         {
              XmlSerializer formatter = new XmlSerializer(typeof(List<Game>));
-             using (FileStream stream = new FileStream(PATH, FileMode.OpenOrCreate))
+             using (FileStream stream = new FileStream(PATH, FileMode.Create))
              {
                  formatter.Serialize(stream, o);
              }
         }
 
-        public void SaveDataCollection(List<GameData> o)
+        public void SaveData(List<GameData> o)
         {
             XmlSerializer formatter = new XmlSerializer(typeof(List<GameData>));
-            using (FileStream stream = new FileStream(PATH, FileMode.OpenOrCreate))
+            using (FileStream stream = new FileStream(PATH, FileMode.Create))
             {
                 formatter.Serialize(stream, o);
             }
