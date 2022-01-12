@@ -22,6 +22,39 @@ namespace bggparser
             Console.ForegroundColor = ConsoleColor.White;
         }
 
+        public static void DbCollectionUpdate(List<Game> gameList, string name) 
+        {
+            using (var contex = new BoardGameContex())
+            {
+                foreach (var game in gameList)
+                {
+                    contex.DbGames.Add(new DbGame() { Name = game.Name, UserName = name });
+                }
+                contex.SaveChanges();
+                Console.WriteLine("Объекты сохранены в БД.");
+            }
+        }
+
+        public static void DbGameDataUpdate(List<GameData> gameList) 
+        {
+            using (var contex = new BoardGameContex())
+            {
+                foreach (var game in gameList)
+                {
+                    foreach (var item in contex.DbGames)
+                    {
+                        if (item.Name == game.Name)
+                        {
+                            contex.DbGamesDates.Add(new DbGameDate() { Date = game.Date, DbGameId = item.Id });
+                        }
+                    }
+                }
+                contex.SaveChanges();
+                Console.WriteLine("Объекты сохранены в БД."); 
+            }
+        }
+
+
         static void Main(string[] args)
         {
             Console.WriteLine("Введите никнейм пользователя сайта boardgamgeek.com.");
@@ -37,7 +70,36 @@ namespace bggparser
             FileService fileDataService = new FileService(dataPath);
 
             newUser.GetUserCollection();
+
+            if (File.Exists(collectionPath))
+            {
+                fileCollectionService.LoadCollection(newUser);
+                List<Game> updateCollectionList = new List<Game>();
+                foreach (var game in newUser.gameCollection)
+                {
+                    for (int i = 0; i < newUser.tempGameCollection.Count; i++)
+                    {
+                        if (game.Name == newUser.tempGameCollection[i].Name)
+                        {
+                            newUser.tempGameCollection.RemoveAt(i);
+                        }
+                    }
+                }
+                newUser.gameCollection.AddRange(newUser.tempGameCollection);
+                if (newUser.tempGameCollection.Count > 0)
+                {
+                    DbCollectionUpdate(newUser.tempGameCollection, userName);
+                }
+
+            }
+            else
+            {
+                newUser.gameCollection = newUser.tempGameCollection;
+                DbCollectionUpdate(newUser.gameCollection, userName);
+            }
             fileCollectionService.SaveCollection(newUser.gameCollection);
+
+
             newUser.GetUserHistory();
 
             if (File.Exists(dataPath))
@@ -57,37 +119,18 @@ namespace bggparser
                     }
                 }
                 newUser.gameData.AddRange(newUser.tempGameData);
+                if (newUser.tempGameData.Count > 0)
+                {
+                    DbGameDataUpdate(newUser.tempGameData);
+                }
+
             }
             else
             {
                 newUser.gameData = newUser.tempGameData;
+                DbGameDataUpdate(newUser.gameData);
             }
             fileDataService.SaveData(newUser.gameData);
-
-            #region DbProcess
-
-            using (var contex = new BoardGameContex())
-            {
-                foreach (var game in newUser.gameCollection)
-                {
-                    contex.DbGames.Add(new DbGame() { Name = game.Name, UserName = userName });
-                }
-                contex.SaveChanges();
-                foreach (var game in newUser.gameData)
-                {
-                    foreach (var item in contex.DbGames)
-                    {
-                        if (item.Name == game.Name)
-                        {
-                            contex.DbGamesDates.Add(new DbGameDate() { Date = game.Date, DbGameId = item.Id });
-                        }
-                    }
-                }
-                contex.SaveChanges();
-                Console.WriteLine("Объекты сохранены в БД.");
-            }
-            #endregion
-
 
             bool alive = true;
             while (alive)
@@ -127,6 +170,10 @@ namespace bggparser
                             }
                             newUser.AddPlayedGame(newUser.gameCollection[decision1-1].Name);
                             fileDataService.SaveData(newUser.gameData);
+                            List<GameData> currentGame = new List<GameData>();
+                            currentGame.Add(newUser.gameData.Last());
+                            DbGameDataUpdate(currentGame);
+
                             break;
                         }
                     case 2:

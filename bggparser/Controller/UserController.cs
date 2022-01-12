@@ -22,6 +22,8 @@ namespace bggparser
         public List<GameData> gameData = new List<GameData>();
         public List<GameData> tempGameData = new List<GameData>();
         public List<Game> gameCollection = new List<Game>();
+        public List<Game> tempGameCollection = new List<Game>();
+
 
         const string BEGINURL_COLLECTION = "https://www.boardgamegeek.com/xmlapi/collection/";
         const string ENDURL_COLLECTION = "?own=1.xml";
@@ -88,7 +90,7 @@ namespace bggparser
                             };
                 foreach (var game in games)
                 {
-                    gameCollection.Add(game);
+                    tempGameCollection.Add(game);
                 }
             }
             catch (Exception ex)
